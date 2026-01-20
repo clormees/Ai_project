@@ -89,7 +89,7 @@ function App() {
     setCurrentChatId(id);
     setIsMobileMenuOpen(false);
     try {
-      const res = await axios.get(`http://127.0.0.1:8000/chats/${id}`);
+      const res = await axios.get(`https://fakegpt-iiug.onrender.com/${id}`);
       setMessages(res.data);
     } catch (e) { console.error(e); }
   };
@@ -99,7 +99,7 @@ function App() {
     e.stopPropagation();
     if (!confirm(t.deleteConfirm)) return;
     try {
-      await axios.delete(`http://127.0.0.1:8000/chats/${id}`);
+      await axios.delete(`https://fakegpt-iiug.onrender.com/${id}`);
       setChats(prev => prev.filter(c => c.id !== id));
       if (currentChatId === id) {
         setCurrentChatId(null);
