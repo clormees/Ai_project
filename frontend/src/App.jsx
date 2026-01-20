@@ -68,7 +68,7 @@ function App() {
   // Pobieranie listy czatów
   const fetchChats = async () => {
     try {
-      const res = await axios.get('http://127.0.0.1:8000/chats');
+      const res = await axios.get('https://fakegpt-iiug.onrender.com');
       setChats(res.data);
     } catch (e) { console.error(e); }
   };
@@ -76,7 +76,7 @@ function App() {
   // Tworzenie nowego czatu
   const createNewChat = async () => {
     try {
-      const res = await axios.post('http://127.0.0.1:8000/chats/new');
+      const res = await axios.post('https://fakegpt-iiug.onrender.com');
       setChats(prev => [...prev, res.data]);
       setCurrentChatId(res.data.chat_id);
       setMessages([]);
@@ -122,7 +122,7 @@ function App() {
     let chatId = currentChatId;
     if (!chatId) {
        try {
-         const res = await axios.post('http://127.0.0.1:8000/chats/new');
+         const res = await axios.post('https://fakegpt-iiug.onrender.com');
          chatId = res.data.chat_id;
          setCurrentChatId(chatId);
          setChats(prev => [...prev, res.data]);
@@ -157,7 +157,7 @@ function App() {
     setIsLoading(true);
 
     try {
-      const res = await axios.post(`http://127.0.0.1:8000/chats/${chatId}/message`, formData, {
+      const res = await axios.post(`https://fakegpt-iiug.onrender.com/chats/${chatId}/message`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       setMessages(prev => [...prev, { role: 'bot', text: res.data.response }]);
