@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 
+const API_BASE = "https://fakegpt-iiug.onrender.com";
+
 // --- TŁUMACZENIA ---
 const translations = {
   pl: {
@@ -54,7 +56,6 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
-  // Stan dla wybranego pliku
   const [selectedFile, setSelectedFile] = useState(null);
   const fileInputRef = useRef(null);
   
@@ -65,18 +66,17 @@ function App() {
 
   // --- LOGIKA ---
   
-  // Pobieranie listy czatów
   const fetchChats = async () => {
     try {
-      const res = await axios.get('https://fakegpt-iiug.onrender.com');
+      // ИСПОЛЬЗУЕМ API_BASE + КОНКРЕТНЫЙ АДРЕС
+      const res = await axios.get(`${API_BASE}/chats`);
       setChats(res.data);
     } catch (e) { console.error(e); }
   };
 
-  // Tworzenie nowego czatu
   const createNewChat = async () => {
     try {
-      const res = await axios.post('https://fakegpt-iiug.onrender.com');
+      const res = await axios.post(`${API_BASE}/chats/new`);
       setChats(prev => [...prev, res.data]);
       setCurrentChatId(res.data.chat_id);
       setMessages([]);
@@ -84,22 +84,20 @@ function App() {
     } catch (e) { alert(t.error); }
   };
 
-  // Ładowanie konkretnego czatu
   const loadChat = async (id) => {
     setCurrentChatId(id);
     setIsMobileMenuOpen(false);
     try {
-      const res = await axios.get(`https://fakegpt-iiug.onrender.com/${id}`);
+      const res = await axios.get(`${API_BASE}/chats/${id}`);
       setMessages(res.data);
     } catch (e) { console.error(e); }
   };
 
-  // Usuwanie czatu
   const deleteChat = async (e, id) => {
     e.stopPropagation();
     if (!confirm(t.deleteConfirm)) return;
     try {
-      await axios.delete(`https://fakegpt-iiug.onrender.com/${id}`);
+      await axios.delete(`${API_BASE}/chats/${id}`);
       setChats(prev => prev.filter(c => c.id !== id));
       if (currentChatId === id) {
         setCurrentChatId(null);
@@ -108,29 +106,25 @@ function App() {
     } catch (e) { alert(t.error); }
   };
 
-  // Obsługa wyboru pliku
   const handleFileSelect = (e) => {
     if (e.target.files && e.target.files[0]) {
       setSelectedFile(e.target.files[0]);
     }
   };
 
-  // --- WYSYŁANIE WIADOMOŚCI ---
   const sendMessage = async () => {
     if (!input.trim() && !selectedFile) return;
 
     let chatId = currentChatId;
     if (!chatId) {
        try {
-         const res = await axios.post('https://fakegpt-iiug.onrender.com');
+         const res = await axios.post(`${API_BASE}/chats/new`);
          chatId = res.data.chat_id;
          setCurrentChatId(chatId);
          setChats(prev => [...prev, res.data]);
        } catch(e) { return; }
     }
 
-    // 1. Przygotowanie lokalnego podglądu (Optimistic UI)
-    // Jeśli wybrano plik, tworzymy tymczasowy URL, aby pokazać go w czacie PRZED wysłaniem na serwer
     let imagePreviewUrl = null;
     if (selectedFile) {
         imagePreviewUrl = URL.createObjectURL(selectedFile);
@@ -139,29 +133,27 @@ function App() {
     const userMsg = { 
         role: 'user', 
         text: input, 
-        image: imagePreviewUrl // Zapisujemy URL obrazka w wiadomości
+        image: imagePreviewUrl 
     };
     
     setMessages(prev => [...prev, userMsg]);
     
-    // Przygotowanie danych (FormData dla plików)
     const formData = new FormData();
     formData.append('message', input || "Analyze this image");
     if (selectedFile) {
         formData.append('file', selectedFile);
     }
 
-    // Czyszczenie pól
     setInput('');
     setSelectedFile(null);
     setIsLoading(true);
 
     try {
-      const res = await axios.post(`https://fakegpt-iiug.onrender.com/chats/${chatId}/message`, formData, {
+      const res = await axios.post(`${API_BASE}/chats/${chatId}/message`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       setMessages(prev => [...prev, { role: 'bot', text: res.data.response }]);
-      fetchChats(); // Odświeżamy listę, aby zaktualizować tytuł
+      fetchChats(); 
     } catch (e) {
       setMessages(prev => [...prev, { role: 'bot', text: `⚠️ ${t.error}` }]);
     } finally {
@@ -172,12 +164,11 @@ function App() {
   return (
     <div className="flex h-screen bg-white font-sans text-gray-800 overflow-hidden relative">
       
-      {/* LOGO fakeGPT (Prawy górny róg) */}
+      {/* LOGO fakeGPT */}
       <div className="absolute top-4 right-16 md:right-20 z-20 pointer-events-none select-none">
         <span className="text-gray-300 font-bold text-xl tracking-wider opacity-60">fakeGPT</span>
       </div>
 
-      {/* --- PASEK BOCZNY (SIDEBAR) --- */}
       <aside className={`
         fixed inset-y-0 left-0 z-50 w-72 bg-gray-50 border-r border-gray-200 transform transition-transform duration-300 ease-in-out
         md:relative md:translate-x-0 flex flex-col
@@ -206,19 +197,15 @@ function App() {
         </div>
       </aside>
 
-      {/* Tło dla menu mobilnego */}
       {isMobileMenuOpen && <div className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden" onClick={() => setIsMobileMenuOpen(false)}></div>}
 
-      {/* --- GŁÓWNA CZĘŚĆ --- */}
       <main className="flex-1 flex flex-col relative w-full h-full">
-        {/* Nagłówek mobilny */}
         <div className="md:hidden flex items-center justify-between p-4 border-b bg-white z-10">
           <button onClick={() => setIsMobileMenuOpen(true)} className="p-1 text-gray-600"><MenuIcon /></button>
           <span className="font-semibold text-gray-700">AI Chat</span>
           <div className="w-6"></div>
         </div>
 
-        {/* Lista wiadomości */}
         <div className="flex-1 overflow-y-auto p-4 pb-40">
           {messages.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-gray-400 opacity-50">
@@ -233,7 +220,6 @@ function App() {
                   <div className="flex-1 pt-1 space-y-2 overflow-hidden text-sm md:text-base leading-relaxed">
                     {msg.role === 'user' ? (
                       <div className="text-gray-800">
-                        {/* JEŚLI JEST OBRAZEK - POKAZUJEMY GO */}
                         {msg.image && (
                             <img src={msg.image} alt="Przesłany obraz" className="max-w-xs md:max-w-sm rounded-lg mb-2 shadow-sm border border-gray-200" />
                         )}
@@ -253,26 +239,19 @@ function App() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* OBSZAR WPROWADZANIA (INPUT AREA) */}
         <div className="absolute bottom-0 left-0 w-full bg-white border-t border-gray-100 p-4 md:p-6 bg-gradient-to-t from-white via-white to-transparent">
           <div className="max-w-3xl mx-auto relative">
-            
-            {/* Podgląd pliku (mały, nad inputem) */}
             {selectedFile && (
                 <div className="absolute bottom-full left-0 mb-2 p-2 bg-white rounded-lg shadow border border-gray-200 flex items-center gap-2">
                     <span className="text-xs text-gray-500 max-w-[150px] truncate">{selectedFile.name}</span>
                     <button onClick={() => setSelectedFile(null)} className="text-red-500 hover:text-red-700 font-bold">×</button>
                 </div>
             )}
-
             <div className="shadow-sm rounded-xl border border-gray-300 bg-white flex items-center pr-2">
-              {/* Ukryte pole input dla pliku */}
               <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileSelect} />
-              
               <button onClick={() => fileInputRef.current.click()} className="p-3 text-gray-400 hover:text-gray-600 transition" title="Załącz obraz">
                 <ClipIcon />
               </button>
-              
               <input
                 type="text"
                 value={input}
