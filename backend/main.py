@@ -34,7 +34,7 @@ chat_sessions = {}
 @app.post("/chats/new")
 async def create_chat():
     chat_id = str(uuid.uuid4())
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-2.5-flash')
     session = model.start_chat(history=[])
     
     chat_sessions[chat_id] = {
