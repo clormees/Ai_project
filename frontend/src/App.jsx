@@ -10,11 +10,14 @@ const Typewriter = ({ text, speed = 15 }) => {
   const [displayedText, setDisplayedText] = useState('');
   
   useEffect(() => {
+    setDisplayedText(''); // Resetowanie tekstu przed rozpoczęciem
     let i = 0;
     const timer = setInterval(() => {
-      if (i < text.length) {
-        setDisplayedText((prev) => prev + text.charAt(i));
-        i++;
+      i++;
+      // Zamiast dodawać literę, bierzemy dokładny fragment ciągu od 0 do i.
+      // To wyklucza pomijanie liter lub powielanie.
+      if (i <= text.length) {
+        setDisplayedText(text.slice(0, i)); 
       } else {
         clearInterval(timer);
       }
