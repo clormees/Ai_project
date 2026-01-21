@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 // --- LINK DO BACKENDU (RENDER) ---
 const API_BASE = "https://fakegpt-iiug.onrender.com";
 
-// --- KOMPONENT ANIMACJI PISANIA (POPRAWIONY) ---
+// --- KOMPONENT ANIMACJI PISANIA ---
 const Typewriter = ({ text, speed = 15 }) => {
   const [displayedText, setDisplayedText] = useState('');
   
@@ -189,13 +189,9 @@ function App() {
   };
 
   return (
-    // Główny kontener
     <div className={`flex h-[100dvh] font-sans overflow-hidden relative ${themeClasses.bg}`}>
       
-      {/* --- LOGO DESKTOP (Środek góra, tylko na PC) --- */}
-      <div className="hidden md:block absolute top-4 left-1/2 transform -translate-x-1/2 z-20 pointer-events-none select-none">
-        <span className="font-bold text-xl tracking-wider text-white opacity-80">fakeGPT</span>
-      </div>
+      {/* UWAGA: Usunięto logo z tego miejsca, przeniesiono do wnętrza <main> */}
 
       {/* --- SIDEBAR --- */}
       <aside className={`
@@ -242,11 +238,17 @@ function App() {
       {isMobileMenuOpen && <div className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden" onClick={() => setIsMobileMenuOpen(false)}></div>}
 
       <main className="flex-1 flex flex-col relative w-full h-full">
-        {/* --- NAGŁÓWEK MOBILNY (Tylko telefon) --- */}
+        
+        {/* --- LOGO DESKTOP (Teraz wewnątrz MAIN, wyśrodkowane względem czatu) --- */}
+        <div className={`hidden md:block absolute top-4 left-1/2 transform -translate-x-1/2 z-20 pointer-events-none select-none ${darkMode ? "text-white opacity-80" : "text-gray-300 opacity-60"}`}>
+          <span className="font-bold text-xl tracking-wider">fakeGPT</span>
+        </div>
+
+        {/* --- NAGŁÓWEK MOBILNY --- */}
         <div className={`md:hidden flex items-center justify-between p-4 border-b z-10 ${themeClasses.bg} ${themeClasses.border}`}>
           <button onClick={() => setIsMobileMenuOpen(true)} className="p-1"><MenuIcon /></button>
-          {/* TUTAJ ZMIANA: fakeGPT na środku, biały */}
-          <span className="font-bold text-xl tracking-wider text-white">fakeGPT</span>
+          {/* Logo mobilne zmienia kolor w zależności od motywu */}
+          <span className={`font-bold text-xl tracking-wider ${darkMode ? "text-white" : "text-gray-700"}`}>fakeGPT</span>
           <div className="w-6"></div>
         </div>
 
