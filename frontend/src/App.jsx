@@ -5,17 +5,15 @@ import ReactMarkdown from 'react-markdown';
 // --- LINK DO BACKENDU (RENDER) ---
 const API_BASE = "https://fakegpt-iiug.onrender.com";
 
-// --- KOMPONENT ANIMACJI PISANIA ---
+// --- KOMPONENT ANIMACJI PISANIA (POPRAWIONY) ---
 const Typewriter = ({ text, speed = 15 }) => {
   const [displayedText, setDisplayedText] = useState('');
   
   useEffect(() => {
-    setDisplayedText(''); // Resetowanie tekstu przed rozpoczęciem
+    setDisplayedText(''); 
     let i = 0;
     const timer = setInterval(() => {
       i++;
-      // Zamiast dodawać literę, bierzemy dokładny fragment ciągu od 0 do i.
-      // To wyklucza pomijanie liter lub powielanie.
       if (i <= text.length) {
         setDisplayedText(text.slice(0, i)); 
       } else {
@@ -73,7 +71,7 @@ const MoonIcon = () => (<svg className="w-5 h-5" fill="none" stroke="currentColo
 
 function App() {
   const [lang, setLang] = useState('pl');
-  const [darkMode, setDarkMode] = useState(true); // Domyślnie ciemny motyw
+  const [darkMode, setDarkMode] = useState(true);
   const t = translations[lang];
   
   const [chats, setChats] = useState([]);
@@ -177,7 +175,7 @@ function App() {
     }
   };
 
-  // Klasy CSS dla motywu ciemnego/jasnego
+  // Style CSS
   const themeClasses = {
     bg: darkMode ? "bg-black text-gray-100" : "bg-white text-gray-800",
     sidebar: darkMode ? "bg-gray-900 border-gray-800" : "bg-gray-50 border-gray-200",
@@ -191,14 +189,15 @@ function App() {
   };
 
   return (
-    <div className={`flex h-screen font-sans overflow-hidden relative ${themeClasses.bg}`}>
+    // Główny kontener
+    <div className={`flex h-[100dvh] font-sans overflow-hidden relative ${themeClasses.bg}`}>
       
-      {/* LOGO fakeGPT */}
-      <div className="absolute top-4 right-16 md:right-20 z-20 pointer-events-none select-none">
-        <span className={`font-bold text-xl tracking-wider opacity-60 ${darkMode ? "text-gray-500" : "text-gray-300"}`}>fakeGPT</span>
+      {/* --- LOGO DESKTOP (Środek góra, tylko na PC) --- */}
+      <div className="hidden md:block absolute top-4 left-1/2 transform -translate-x-1/2 z-20 pointer-events-none select-none">
+        <span className="font-bold text-xl tracking-wider text-white opacity-80">fakeGPT</span>
       </div>
 
-      {/* --- PASEK BOCZNY --- */}
+      {/* --- SIDEBAR --- */}
       <aside className={`
         fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-300 ease-in-out
         md:relative md:translate-x-0 flex flex-col border-r
@@ -224,21 +223,14 @@ function App() {
           ))}
         </div>
 
-        {/* USTAWIENIA (Język + Motyw) */}
+        {/* USTAWIENIA */}
         <div className={`p-4 border-t ${themeClasses.border}`}>
-          
-          {/* Przełącznik motywu */}
           <div className="flex items-center justify-between mb-4">
              <span className="text-xs font-bold opacity-50 uppercase">{t.theme}</span>
-             <button 
-               onClick={() => setDarkMode(!darkMode)}
-               className={`p-2 rounded-full transition ${darkMode ? "bg-gray-800 text-yellow-400 hover:bg-gray-700" : "bg-gray-200 text-gray-600 hover:bg-gray-300"}`}
-             >
+             <button onClick={() => setDarkMode(!darkMode)} className={`p-2 rounded-full transition ${darkMode ? "bg-gray-800 text-yellow-400 hover:bg-gray-700" : "bg-gray-200 text-gray-600 hover:bg-gray-300"}`}>
                {darkMode ? <SunIcon /> : <MoonIcon />}
              </button>
           </div>
-
-          {/* Języki */}
           <div className="flex gap-2">
             <button onClick={() => setLang('pl')} className={`flex-1 py-1 text-xs rounded border ${lang==='pl' ? (darkMode ? 'bg-gray-800 border-green-600 text-green-400' : 'bg-white border-green-500 text-green-700') : (darkMode ? 'border-gray-700 text-gray-400' : 'border-gray-300')}`}>PL</button>
             <button onClick={() => setLang('en')} className={`flex-1 py-1 text-xs rounded border ${lang==='en' ? (darkMode ? 'bg-gray-800 border-blue-600 text-blue-400' : 'bg-white border-blue-500 text-blue-700') : (darkMode ? 'border-gray-700 text-gray-400' : 'border-gray-300')}`}>EN</button>
@@ -250,14 +242,16 @@ function App() {
       {isMobileMenuOpen && <div className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden" onClick={() => setIsMobileMenuOpen(false)}></div>}
 
       <main className="flex-1 flex flex-col relative w-full h-full">
-        {/* Nagłówek mobilny */}
+        {/* --- NAGŁÓWEK MOBILNY (Tylko telefon) --- */}
         <div className={`md:hidden flex items-center justify-between p-4 border-b z-10 ${themeClasses.bg} ${themeClasses.border}`}>
           <button onClick={() => setIsMobileMenuOpen(true)} className="p-1"><MenuIcon /></button>
-          <span className="font-semibold">AI Chat</span>
+          {/* TUTAJ ZMIANA: fakeGPT na środku, biały */}
+          <span className="font-bold text-xl tracking-wider text-white">fakeGPT</span>
           <div className="w-6"></div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 pb-40 scroll-smooth">
+        {/* LISTA WIADOMOŚCI */}
+        <div className="flex-1 overflow-y-auto p-4 scroll-smooth">
           {messages.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center opacity-50">
                <div className="text-4xl mb-4 bg-gray-800 p-4 rounded-full">🤖</div>
@@ -276,12 +270,7 @@ function App() {
                       </div>
                     ) : (
                       <div className={`prose max-w-none ${darkMode ? "prose-invert" : ""}`}>
-                        {/* WŁĄCZAMY ANIMACJĘ TYLKO DLA OSTATNIEJ WIADOMOŚCI BOTA */}
-                        {idx === messages.length - 1 ? (
-                           <Typewriter text={msg.text} />
-                        ) : (
-                           <ReactMarkdown>{msg.text}</ReactMarkdown>
-                        )}
+                        {idx === messages.length - 1 ? (<Typewriter text={msg.text} />) : (<ReactMarkdown>{msg.text}</ReactMarkdown>)}
                       </div>
                     )}
                   </div>
@@ -293,9 +282,9 @@ function App() {
           <div ref={messagesEndRef} />
         </div>
 
-        <div className={`absolute bottom-0 left-0 w-full p-4 md:p-6 bg-gradient-to-t ${darkMode ? "from-black via-black to-transparent" : "from-white via-white to-transparent"}`}>
+        {/* OBSZAR WPROWADZANIA */}
+        <div className={`w-full p-4 md:p-6 bg-gradient-to-t shrink-0 ${darkMode ? "from-black via-black to-transparent" : "from-white via-white to-transparent"}`}>
           <div className="max-w-3xl mx-auto relative">
-            {/* Podgląd pliku */}
             {selectedFile && (
                 <div className={`absolute bottom-full left-0 mb-2 p-2 rounded-lg shadow border flex items-center gap-2 ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
                     <span className="text-xs opacity-70 max-w-[150px] truncate">{selectedFile.name}</span>
